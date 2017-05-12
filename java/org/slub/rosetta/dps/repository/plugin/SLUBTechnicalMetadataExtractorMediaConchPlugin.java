@@ -72,9 +72,14 @@ public class SLUBTechnicalMetadataExtractorMediaConchPlugin implements MDExtract
         );
     }
 
-    private void parse_ffprobe_csv_output(String exiftoolxml ) {
+    /* ffprobe output of metadata
+           supports different outputs. we are using the flat-model, see WRITERS section in ffprobe manual
+           the streams will be mapped as: streams.stream.0.$property
+           the separator is "="
+         */
+    private void parse_ffprobe_flat_output(String exiftoolxml ) {
         // see output of exiftool -X, alternatively check http://ns.exiftool.ca/ExifTool/1.0/
-        Pattern p = Pattern.compile("<([^>]+)>([^<]+)</\1>");
+        Pattern p = Pattern.compile("([^=]+)=(.*)");
         Matcher m = p.matcher(exiftoolxml);
         if (m.matches()) {
             String key = m.group(1);
@@ -129,9 +134,14 @@ public class SLUBTechnicalMetadataExtractorMediaConchPlugin implements MDExtract
         }
 
 
-        // exiftool output of metadata
+        /* ffprobe output of metadata
+           supports different outputs. we are using the flat-model, see WRITERS section in ffprobe manual
+           the streams will be mapped as: streams.stream.0.$property
+           the separator is "="
+         */
+
         try {
-            String execstring = this.ffprobe_binary_path + " -print_format csv -v error -show_format -show_streams " + filePath;
+            String execstring = this.ffprobe_binary_path + " -print_format flat -v error -show_format -show_streams -show_entries stream=r_frame_rate" + filePath;
             System.out.println("executing: " + execstring);
             Process p = Runtime.getRuntime().exec(execstring);
             p.waitFor();
@@ -140,7 +150,7 @@ public class SLUBTechnicalMetadataExtractorMediaConchPlugin implements MDExtract
             String response="";
             while (line != null) {
                 System.out.println(line);
-                parse_ffprobe_csv_output(line.trim());
+                parse_ffprobe_flat_output(line.trim());
                 response+=line;
                 line = reader.readLine();
             }
@@ -200,12 +210,136 @@ public class SLUBTechnicalMetadataExtractorMediaConchPlugin implements MDExtract
       return this.extractionErrors;
     }
 
+    /* following list is build using:
+    (find ./ -name "*.mkv" -exec ffprobe -print_format flat  -v error -show_format -show_streams -show_entries stream=r_frame_rate \{\} \; ) \
+    | cut -d "=" -f 1 | sort | uniq \
+    | sed -e "s/\(.*\)/available.add(\"\1\");/g"
+     */
     @Override
     public List<String> getSupportedAttributeNames() {
       //return new ArrayList<String>(attributes.keySet());
         List<String> available = new ArrayList<String>();
         //available.add("checkit-tiff-conf");
-
+        available.add("format.bit_rate");
+        available.add("format.duration");
+        available.add("format.filename");
+        available.add("format.format_long_name");
+        available.add("format.format_name");
+        available.add("format.nb_programs");
+        available.add("format.nb_streams");
+        available.add("format.probe_score");
+        available.add("format.size");
+        available.add("format.start_time");
+        available.add("format.tags.DATE");
+        available.add("format.tags.ENCODED_BY");
+        available.add("format.tags.ENCODER");
+        available.add("format.tags.MAJOR_BRAND");
+        available.add("format.tags.MINOR_VERSION");
+        available.add("format.tags.ORIGINATOR_REFERENCE");
+        available.add("format.tags.TIME_REFERENCE");
+        available.add("streams.stream.0.avg_frame_rate");
+        available.add("streams.stream.0.bit_rate");
+        available.add("streams.stream.0.bits_per_raw_sample");
+        available.add("streams.stream.0.bits_per_sample");
+        available.add("streams.stream.0.channel_layout");
+        available.add("streams.stream.0.channels");
+        available.add("streams.stream.0.chroma_location");
+        available.add("streams.stream.0.codec_long_name");
+        available.add("streams.stream.0.codec_name");
+        available.add("streams.stream.0.codec_tag");
+        available.add("streams.stream.0.codec_tag_string");
+        available.add("streams.stream.0.codec_time_base");
+        available.add("streams.stream.0.codec_type");
+        available.add("streams.stream.0.coded_height");
+        available.add("streams.stream.0.coded_width");
+        available.add("streams.stream.0.color_primaries");
+        available.add("streams.stream.0.color_range");
+        available.add("streams.stream.0.color_space");
+        available.add("streams.stream.0.color_transfer");
+        available.add("streams.stream.0.display_aspect_ratio");
+        available.add("streams.stream.0.disposition.attached_pic");
+        available.add("streams.stream.0.disposition.clean_effects");
+        available.add("streams.stream.0.disposition.comment");
+        available.add("streams.stream.0.disposition.default");
+        available.add("streams.stream.0.disposition.dub");
+        available.add("streams.stream.0.disposition.forced");
+        available.add("streams.stream.0.disposition.hearing_impaired");
+        available.add("streams.stream.0.disposition.karaoke");
+        available.add("streams.stream.0.disposition.lyrics");
+        available.add("streams.stream.0.disposition.original");
+        available.add("streams.stream.0.disposition.timed_thumbnails");
+        available.add("streams.stream.0.disposition.visual_impaired");
+        available.add("streams.stream.0.duration");
+        available.add("streams.stream.0.duration_ts");
+        available.add("streams.stream.0.field_order");
+        available.add("streams.stream.0.has_b_frames");
+        available.add("streams.stream.0.height");
+        available.add("streams.stream.0.id");
+        available.add("streams.stream.0.index");
+        available.add("streams.stream.0.level");
+        available.add("streams.stream.0.max_bit_rate");
+        available.add("streams.stream.0.nb_frames");
+        available.add("streams.stream.0.nb_read_frames");
+        available.add("streams.stream.0.nb_read_packets");
+        available.add("streams.stream.0.pix_fmt");
+        available.add("streams.stream.0.profile");
+        available.add("streams.stream.0.refs");
+        available.add("streams.stream.0.r_frame_rate");
+        available.add("streams.stream.0.sample_aspect_ratio");
+        available.add("streams.stream.0.sample_fmt");
+        available.add("streams.stream.0.sample_rate");
+        available.add("streams.stream.0.start_pts");
+        available.add("streams.stream.0.start_time");
+        available.add("streams.stream.0.tags.DURATION");
+        available.add("streams.stream.0.tags.ENCODER");
+        available.add("streams.stream.0.tags.HANDLER_NAME");
+        available.add("streams.stream.0.tags.language");
+        available.add("streams.stream.0.tags.TIMECODE");
+        available.add("streams.stream.0.time_base");
+        available.add("streams.stream.0.timecode");
+        available.add("streams.stream.0.width");
+        available.add("streams.stream.1.avg_frame_rate");
+        available.add("streams.stream.1.bit_rate");
+        available.add("streams.stream.1.bits_per_raw_sample");
+        available.add("streams.stream.1.bits_per_sample");
+        available.add("streams.stream.1.channel_layout");
+        available.add("streams.stream.1.channels");
+        available.add("streams.stream.1.codec_long_name");
+        available.add("streams.stream.1.codec_name");
+        available.add("streams.stream.1.codec_tag");
+        available.add("streams.stream.1.codec_tag_string");
+        available.add("streams.stream.1.codec_time_base");
+        available.add("streams.stream.1.codec_type");
+        available.add("streams.stream.1.disposition.attached_pic");
+        available.add("streams.stream.1.disposition.clean_effects");
+        available.add("streams.stream.1.disposition.comment");
+        available.add("streams.stream.1.disposition.default");
+        available.add("streams.stream.1.disposition.dub");
+        available.add("streams.stream.1.disposition.forced");
+        available.add("streams.stream.1.disposition.hearing_impaired");
+        available.add("streams.stream.1.disposition.karaoke");
+        available.add("streams.stream.1.disposition.lyrics");
+        available.add("streams.stream.1.disposition.original");
+        available.add("streams.stream.1.disposition.timed_thumbnails");
+        available.add("streams.stream.1.disposition.visual_impaired");
+        available.add("streams.stream.1.duration");
+        available.add("streams.stream.1.duration_ts");
+        available.add("streams.stream.1.id");
+        available.add("streams.stream.1.index");
+        available.add("streams.stream.1.max_bit_rate");
+        available.add("streams.stream.1.nb_frames");
+        available.add("streams.stream.1.nb_read_frames");
+        available.add("streams.stream.1.nb_read_packets");
+        available.add("streams.stream.1.profile");
+        available.add("streams.stream.1.r_frame_rate");
+        available.add("streams.stream.1.sample_fmt");
+        available.add("streams.stream.1.sample_rate");
+        available.add("streams.stream.1.start_pts");
+        available.add("streams.stream.1.start_time");
+        available.add("streams.stream.1.tags.DURATION");
+        available.add("streams.stream.1.tags.HANDLER_NAME");
+        available.add("streams.stream.1.tags.language");
+        available.add("streams.stream.1.time_base");
         return available;
     }
 
