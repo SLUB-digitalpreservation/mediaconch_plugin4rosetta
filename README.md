@@ -1,24 +1,7 @@
-Plugin using MediaConch to validate FFV1/Matroska files
-=======================================================
+# !!! ATTENTION !!!
 
-you could test it using 'test.sh'
+**This repository is not maintained any longer!**
 
-== compile
+Please find the latest and maintained version at SLUB's public GitLab instance.
 
-* make clean
-* make
-
-== install
-* copy jar-file to /operational_shared/plugins/custom/
-
-== configuration
-* check blog https://developers.exlibrisgroup.com/blog/Jpylyzer-Technical-Metadata-Extractor-Plugin
-* check https://mediaarea.net/MediaConch/ for latest MediaConch release
-* add Mapping under "Preservation:Extractors", switch from "Global" to "Local", use
-  "Custom"-Tab
-* fill the fields 
-
-== copyright hints
-
-MediaConch is released under Gnu General Public License 3.0 (or higher)
-it could not be integrated and delivered as a binary only plugin.
+You can clone it using: `https://git.slub-dresden.de/slub-digitalpreservation/mediaconch_plugin4rosetta.git`.
